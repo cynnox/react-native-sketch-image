@@ -1,6 +1,5 @@
 import * as React from "react";
-import { ViewProperties, StyleProp, ViewStyle, ImageResolvedAssetSource } from "react-native";
-import PropTypes from "prop-types";
+import { ImageResolvedAssetSource, StyleProp, ViewProperties, ViewStyle } from "react-native";
 
 type ImageType = "png" | "jpg";
 
@@ -115,11 +114,13 @@ export interface ImageEditorProps {
 
     onStrokeStart?: () => void;
     onStrokeChanged?: () => void;
-    onStrokeEnd?: (path: Path) => void;
+    onStrokeEnd?: (path: Path, gestureState : string) => void;
     onSketchSaved?: (result: boolean, path: string) => void;
     onPathsChange?: (pathsCount: number) => void;
     onShapeSelectionChanged?: (isShapeSelected: boolean) => void;
     onDrawingStateChanged?: (event: DrawingStateEvent) => void;
+    onPathIdAssigned?:() => void
+    onStrokeChangedData?:(path : Path) => void;
 }
 
 export class ImageEditor extends React.Component<ImageEditorProps & ViewProperties> {
@@ -134,6 +135,7 @@ export class ImageEditor extends React.Component<ImageEditorProps & ViewProperti
     increaseSelectedShapeFontsize(): void;
     decreaseSelectedShapeFontsize(): void;
     changeSelectedShapeText(newText: String): void;
+    setPathId(id : any): void;
 
     /**
      * @param imageType "png" or "jpg"
@@ -179,7 +181,7 @@ export interface RNImageEditorProps {
     canvasStyle?: StyleProp<ViewStyle>;
     onStrokeStart?: () => void;
     onStrokeChanged?: () => void;
-    onStrokeEnd?: (path: Path) => void;
+    onStrokeEnd?: (path: Path, gestureState : string) => void;
     onClosePressed?: () => void;
     onUndoPressed?: (id: number) => void;
     onDrawingStateChanged?: (event: DrawingStateEvent) => void;

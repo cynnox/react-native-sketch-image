@@ -360,24 +360,31 @@
         self.entityStrokeColor = strokeColor;
     }
 
-    bool exist = false;
+    // bool exist = false;
+    int index = -1;
     for(int i=0; i<_paths.count; i++) {
         if (((RNImageEditorData*)_paths[i]).pathId == pathId) {
-            exist = true;
+            // exist = true;
+            index = i;
             break;
         }
     }
 
-    if (!exist) {
+    // if (!exist) {
         RNImageEditorData *data = [[RNImageEditorData alloc] initWithId: pathId
                                                   strokeColor: strokeColor
                                                   strokeWidth: strokeWidth
                                                        points: points];
-        [_paths addObject: data];
+        // [_paths addObject: data];
+        if (index == -1) {
+            [_paths addObject: data];
+        } else {
+            _paths[index] = data;
+        }
         [data drawInContext:_drawingContext];
         [self setFrozenImageNeedsUpdate];
         [self setNeedsDisplay];
-    }
+    // }
 }
 
 - (void)deletePath:(int) pathId {

@@ -1,7 +1,8 @@
 "use strict";
 
-import React from "react";
+import { ViewPropTypes } from "deprecated-react-native-prop-types";
 import PropTypes from "prop-types";
+import React from "react";
 import ReactNative, {
     NativeModules,
     PanResponder,
@@ -11,7 +12,6 @@ import ReactNative, {
     requireNativeComponent,
     UIManager
 } from "react-native";
-import { ViewPropTypes } from "deprecated-react-native-prop-types";
 import { requestPermissions } from "./handlePermissions";
 
 const RNImageEditor = requireNativeComponent("RNImageEditor", ImageEditor, {
@@ -69,7 +69,10 @@ class ImageEditor extends React.Component {
         }),
 
         permissionDialogTitle: PropTypes.string,
-        permissionDialogMessage: PropTypes.string
+        permissionDialogMessage: PropTypes.string,
+
+        onPathIdAssigned: PropTypes.func,
+        onStrokeChangedData: PropTypes.func
     };
 
     static defaultProps = {
@@ -90,6 +93,10 @@ class ImageEditor extends React.Component {
         },
         onShapeSelectionChanged: () => {
         },
+        onPathIdAssigned: () => {
+        },
+        onStrokeChangedData: () => {
+        },
         shapeConfiguration: {
             shapeBorderColor: "transparent",
             shapeBorderStyle: "Dashed",
@@ -108,7 +115,8 @@ class ImageEditor extends React.Component {
         permissionDialogTitle: "",
         permissionDialogMessage: "",
 
-        defaultPaths: []
+        defaultPaths: [],
+        
     };
 
     state = {
@@ -126,6 +134,9 @@ class ImageEditor extends React.Component {
         this._offset = { x: 0, y: 0 };
         this._size = { width: 0, height: 0 };
         this._initialized = false;
+
+        this._pathIDs = [];
+        this._gestureState = null;
 
         this.state = {
             text: ImageEditor.processText(props.text ? props.text.map((t) => Object.assign({}, t)) : null),
@@ -179,6 +190,10 @@ class ImageEditor extends React.Component {
         this._paths.forEach((d) => (lastId = d.drawer === this.props.user ? d.path.id : lastId));
         if (lastId >= 0) this.deletePath(lastId);
         return lastId;
+    }
+
+    setPathId(pathID) {
+        this._pathIDs.push(pathID);
     }
 
     addPath(data) {
@@ -309,17 +324,20 @@ class ImageEditor extends React.Component {
             onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
             onMoveShouldSetPanResponder: (evt, gestureState) => true,
             onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
-
             onPanResponderGrant: (evt, gestureState) => {
                 if (!this.props.touchEnabled) return;
+                this._gestureState = 'grant';
                 const e = evt.nativeEvent;
                 this._offset = { x: e.pageX - e.locationX, y: e.pageY - e.locationY };
                 this._path = {
-                    id: parseInt(Math.random() * 100000000),
+                    id: this._pathIDs?.length > 0 ? parseInt(this._pathIDs[0], 10) : parseInt(String(Math.random() * 100000000), 10),
                     color: this.props.strokeColor,
                     width: this.props.strokeWidth,
                     data: []
                 };
+
+                this._pathIDs.splice(0,1)
+                if(this.props.onPathIdAssigned) this.props.onPathIdAssigned(true);
 
                 UIManager.dispatchViewManagerCommand(
                     this._handle,
@@ -342,6 +360,7 @@ class ImageEditor extends React.Component {
             },
             onPanResponderMove: (evt, gestureState) => {
                 if (!this.props.touchEnabled) return;
+                this._gestureState = 'move';
                 if (Math.abs(gestureState.dx) < 2.5 || Math.abs(gestureState.dy) < 2.5) return;
                 if (this._path) {
                     const x = parseFloat(
@@ -357,12 +376,13 @@ class ImageEditor extends React.Component {
                     );
                     this._path.data.push(`${x},${y}`);
                     this.props.onStrokeChanged(x, y);
+                    this.props.onStrokeChangedData({path : this._path, size : this._size, drawer : this.props.user}, this._gestureState)
                 }
             },
             onPanResponderRelease: (evt, gestureState) => {
                 if (!this.props.touchEnabled) return;
                 if (this._path) {
-                    this.props.onStrokeEnd({ path: this._path, size: this._size, drawer: this.props.user });
+                    this.props.onStrokeEnd({ path: this._path, size: this._size, drawer: this.props.user }, this._gestureState);
                     this._paths.push({ path: this._path, size: this._size, drawer: this.props.user });
                 }
                 UIManager.dispatchViewManagerCommand(

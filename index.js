@@ -72,7 +72,10 @@ export default class RNImageEditor extends React.Component {
         }),
 
         permissionDialogTitle: PropTypes.string,
-        permissionDialogMessage: PropTypes.string
+        permissionDialogMessage: PropTypes.string,
+
+        onPathIdAssigned: PropTypes.func,
+        onStrokeChangedData: PropTypes.func
     };
 
     static defaultProps = {
@@ -85,6 +88,8 @@ export default class RNImageEditor extends React.Component {
         onUndoPressed: () => {},
         onClearPressed: () => {},
         onPathsChange: () => {},
+        onPathIdAssigned: () => {},
+        onStrokeChangedData: () => {},
         user: null,
 
         closeComponent: null,

@@ -323,17 +323,30 @@ public class ImageEditor extends View {
             mEntityStrokeColor = strokeColor;
         }
 
-        boolean exist = false;
-        for (SketchData data : mPaths) {
-            if (data.id == id) {
-                exist = true;
+        // boolean exist = false;
+        // for (SketchData data : mPaths) {
+        //     if (data.id == id) {
+        //         exist = true;
+        //         break;
+        //     }
+        // }
+
+        int index = -1;
+        for (int i = 0; i < mPaths.size(); i++) {
+            if (mPaths.get(i).id == id) {
+                index = i;
                 break;
             }
         }
 
-        if (!exist) {
+        // if (!exist) {
             SketchData newPath = new SketchData(id, strokeColor, strokeWidth, points);
-            mPaths.add(newPath);
+            // mPaths.add(newPath);
+            if (index == -1) {
+                mPaths.add(newPath);
+            } else {
+                mPaths.set(index, newPath);
+            }
             boolean isErase = strokeColor == Color.TRANSPARENT;
             if (isErase && !mDisableHardwareAccelerated) {
                 mDisableHardwareAccelerated = true;
@@ -341,7 +354,7 @@ public class ImageEditor extends View {
             }
             newPath.draw(mDrawingCanvas);
             invalidateCanvas(true);
-        }
+        // }
     }
 
     public void deletePath(int id) {
